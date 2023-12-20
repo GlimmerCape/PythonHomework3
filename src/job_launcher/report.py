@@ -8,11 +8,11 @@ from typing import Dict
 log = logging.getLogger(__name__)
 
 
-JSON_REPORT = 'job_launcher_result.json'
+JSON_REPORT = "job_launcher_result.json"
 
 
 def dump_json_report(data: Dict, output: str):
-    with open(path.join(output, JSON_REPORT), 'w') as f:
+    with open(path.join(output, JSON_REPORT), "w") as f:
         json.dump(data, f, indent=2)
 
 
@@ -31,17 +31,15 @@ class Reporter:
         log.info(message)
         log.info("Json report generated")
 
-        html_template = Template("resources/templates/report.html.j2")
-        html_report = html_template.render(
-            server=json_report.get('server'),
-            results=json_report.get('results')
-        )
+        with open("resources/templates/report.html.j2", "r") as template_file:
+            html_template = Template(template_file.read())
+        html_report = html_template.render(server=json_report.get("server"), results=json_report.get("results"))
 
-        with open(self.html_report_file, 'w') as f:
+        with open(self.html_report_file, "w") as f:
             f.write(html_report)
 
         log.info(html_report)
-        log.info('HTML report generated')
+        log.info("HTML report generated")
 
         log.info("Finish report generation")
 
