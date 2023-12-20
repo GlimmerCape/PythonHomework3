@@ -22,13 +22,13 @@ class JenkinsServer:
     def __init__(self, url: str, username: Optional[str] = None, password: Optional[str] = None):
         self.server_url = url
         try:
-            self.server = Jenkins(self.server_url, username, password, timeout=600, useCrumb=True, lazy=True)
+            self.server = Jenkins(self.server_url, username, password, timeout=600, lazy=True)
         except (RequestException, JenkinsAPIException) as e:
             raise JobLauncherApplicationException(
                 f"Failed to connect to Jenkins '{self.server_url}' with user '{username}'. Error: {e.message}"
             ) from e
 
-    def run_job(self, name: str, params: Dict[str, str]) -> 'JenkinsBuild':
+    def run_job(self, name: str, params: Dict[str, str]) -> "JenkinsBuild":
         build = self._launch_build(name, params)
         self._wait(build)
         return JenkinsBuild.from_jenkins_api_build(build)
@@ -47,13 +47,13 @@ class JenkinsServer:
                 build = queue_item.get_build()
                 break
             except (JenkinsAPIException, HTTPError):
-                log.debug(f'Build in queue ({retries_left} retries left) ...')
+                log.debug(f"Build in queue ({retries_left} retries left) ...")
                 time.sleep(self.JOB_QUEUE_DELAY)
         else:
             self.server.get_queue().delete_item(queue_item)
-            log.info(f'Queue timeout is over ({self.JOB_QUEUE_RETRIES * self.JOB_QUEUE_DELAY} sec)')
-            raise JenkinsServerException('Failed to run the job. Build in queue for too long, timeout is over')
-        log.info(f'Build: {build.get_build_url()}')
+            log.info(f"Queue timeout is over ({self.JOB_QUEUE_RETRIES * self.JOB_QUEUE_DELAY} sec)")
+            raise JenkinsServerException("Failed to run the job. Build in queue for too long, timeout is over")
+        log.info(f"Build: {build.get_build_url()}")
         return build
 
     def _wait(self, build: Build) -> None:
@@ -61,11 +61,11 @@ class JenkinsServer:
         while build.is_running() and total_wait_time < self.JOB_BUILD_TIMEOUT:
             time.sleep(self.JOB_BUILD_DELAY)  # 30 sec
             total_wait_time += self.JOB_BUILD_DELAY
-            log.debug(f'Build is running for {total_wait_time} sec ...')
+            log.debug(f"Build is running for {total_wait_time} sec ...")
         if build.is_running():
-            raise JenkinsServerException(f'Build timeout is over ({self.JOB_BUILD_TIMEOUT} sec)')
+            raise JenkinsServerException(f"Build timeout is over ({self.JOB_BUILD_TIMEOUT} sec)")
         build.poll()
-        log.info(f'Build status: {build.get_status()}')
+        log.info(f"Build status: {build.get_status()}")
 
 
 class JenkinsBuild:
@@ -75,9 +75,5 @@ class JenkinsBuild:
         self.env = env
 
     @classmethod
-    def from_jenkins_api_build(cls, build: Build) -> 'JenkinsBuild':
-        return cls(
-            build.get_build_url(),
-            build.get_status(),
-            build.get_env_vars()
-        )
+    def from_jenkins_api_build(cls, build: Build) -> "JenkinsBuild":
+        return cls(build.get_build_url(), build.get_status(), build.get_env_vars())
