@@ -36,6 +36,10 @@ class Reporter:
             server=json_report.get('server'),
             results=json_report.get('results')
         )
+
+        with open(self.html_report_file, 'w') as f:
+            f.write(html_report)
+
         log.info(html_report)
         log.info('HTML report generated')
 
